@@ -1,3 +1,4 @@
+import manipuladorDeErros from "./middlewares/manipuladorDeErros.js";
 import express from "express";
 import db from "./config/dbConnect.js"
 import routes from "./routes/index.js"
@@ -11,4 +12,7 @@ const app = express();
 app.use(express.json())
 routes(app);
 
-export default app
+// eslint-disable-next-line no-unused-vars
+app.use(manipuladorDeErros);
+
+export default app;
