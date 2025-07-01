@@ -1,3 +1,4 @@
+import NaoEncontrado from "../erros/NaoEncontrado.js";
 import autores from "../models/Autor.js";
 
 class AutorController {
@@ -5,8 +6,11 @@ class AutorController {
   static listarAutores = async (req, res, next) => {
     try {
       const autoresResultado = await autores.find();
-
-      res.status(200).json(autoresResultado);
+      if (autoresResultado.length) {
+        res.status(200).json(autoresResultado);
+      } else {
+        next(new NaoEncontrado("Nenhum autor localizado"));
+      }
 
     } catch (erro) {
       next(erro);
@@ -20,7 +24,7 @@ class AutorController {
       if (autorResultado !== null) {
         res.status(200).send(autorResultado);
       } else {
-        res.status(404).send({ message: `Id do Autor não localizado.`});
+        next(new NaoEncontrado(`Id do Autor não localizado.`));
       }
     } catch (erro) {
       next(erro);
@@ -33,7 +37,7 @@ class AutorController {
       let autor = new autores(req.body);
 
       const autorResultado = await autor.save();
-
+      
       res.status(201).send(autorResultado.toJSON());
     } catch (erro) {
       next(erro);
@@ -45,9 +49,13 @@ class AutorController {
     try {
       const id = req.params.id;
 
-      await autores.findByIdAndUpdate(id, { $set: req.body });
+      const retorno = await autores.findByIdAndUpdate(id, { $set: req.body });
+      if(retorno !== null) {
+        res.status(200).send({ message: "Autor atualizado com sucesso" });
+      } else {
+        next(new NaoEncontrado("ID do autor não encontrado"));
+      }
 
-      res.status(200).send({ message: "Autor atualizado com sucesso" });
     } catch (erro) {
       next(erro);
     }
@@ -57,9 +65,13 @@ class AutorController {
     try {
       const id = req.params.id;
 
-      await autores.findByIdAndDelete(id);
-
-      res.status(200).send({ message: "Autor removido com sucesso" });
+      const resultado = await autores.findByIdAndDelete(id);
+      if (resultado == null) {
+        next(new NaoEncontrado("ID do autor não localizado"));
+      } else {
+        res.status(200).send({ message: "Autor removido com sucesso" });
+      }
+      
     } catch (erro) {
       next(erro);
     }
